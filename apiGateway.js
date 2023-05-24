@@ -132,7 +132,6 @@ app.post('/orders', (req, res) => {
   );
 });
 
-
 app.get('/orders/:id', (req, res) => {
   const id = req.params.id;
   clientOrders.getOrder({ order_id: id }, (err, response) => {
