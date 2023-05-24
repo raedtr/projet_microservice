@@ -109,15 +109,66 @@ Mutation: {
     },
     addProduct: (_, { id,title, description }) => {
       return new Promise((resolve, reject) => {
-        db.run('INSERT INTO products (id,title, description) VALUES (?, ?, ?)', [id,title, description], function (err) {
+        db.run('INSERT INTO products (title, description) VALUES (?, ?)', [title, description], function (err) {
           if (err) {
             reject(err);
+          } else {
+            resolve({ title, description });
+          }
+        });
+      });
+    },
+    updateProduct: (_, { id, title, description }) => {
+      return new Promise((resolve, reject) => {
+        db.run('UPDATE products SET title = ?, description = ? WHERE id = ?', [title, description, id], function (err) {
+          if (err) {
+            reject(err);
+          } else if (this.changes === 0) {
+            reject(new Error('Product not found'));
           } else {
             resolve({ id, title, description });
           }
         });
       });
-    }
+    },
+    deleteProduct: (_, { id }) => {
+      return new Promise((resolve, reject) => {
+        db.run('DELETE FROM products WHERE id = ?', [id], function (err) {
+          if (err) {
+            reject(err);
+          } else if (this.changes === 0) {
+            reject(new Error('Product not found'));
+          } else {
+            resolve(true);
+          }
+        });
+      });
+    },
+    updateOrder: (_, { id, title, description }) => {
+      return new Promise((resolve, reject) => {
+        db.run('UPDATE orders SET title = ?, description = ? WHERE id = ?', [title, description, id], function (err) {
+          if (err) {
+            reject(err);
+          } else if (this.changes === 0) {
+            reject(new Error('Order not found'));
+          } else {
+            resolve({ id, title, description });
+          }
+        });
+      });
+    },
+    deleteOrder: (_, { id }) => {
+      return new Promise((resolve, reject) => {
+        db.run('DELETE FROM orders WHERE id = ?', [id], function (err) {
+          if (err) {
+            reject(err);
+          } else if (this.changes === 0) {
+            reject(new Error('Order not found'));
+          } else {
+            resolve(true);
+          }
+        });
+      });}
   },
 };
 module.exports = resolvers;
