@@ -2,15 +2,11 @@ syntax = "proto3";
 
 package product;
 
-
 message Product {
   string id = 1;
   string title = 2;
   string description = 3;
-
 }
-
-
 
 message GetProductRequest {
   string product_id = 1;
@@ -38,8 +34,28 @@ message CreateProductResponse {
   Product product = 1;
 }
 
+message UpdateProductRequest {
+  string product_id = 1;
+  string title = 2;
+  string description = 3;
+}
+
+message UpdateProductResponse {
+  Product product = 1;
+}
+
+message DeleteProductRequest {
+  string product_id = 1;
+}
+
+message DeleteProductResponse {
+  bool success = 1;
+}
+
 service ProductService {
   rpc GetProduct(GetProductRequest) returns (GetProductResponse);
   rpc SearchProducts(SearchProductsRequest) returns (SearchProductsResponse);
   rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse);
+  rpc UpdateProduct(UpdateProductRequest) returns (UpdateProductResponse);
+  rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse);
 }

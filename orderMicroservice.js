@@ -1,8 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
-
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
-
 
 const orderProtoPath = 'order.proto';
 const orderProtoDefinition = protoLoader.loadSync(orderProtoPath, {
@@ -13,7 +11,7 @@ const orderProtoDefinition = protoLoader.loadSync(orderProtoPath, {
   oneofs: true,
 });
 const orderProto = grpc.loadPackageDefinition(orderProtoDefinition).order;
-const db = new sqlite3.Database('./database.db'); 
+const db = new sqlite3.Database('./database.sqlite');
 
 db.run(`
   CREATE TABLE IF NOT EXISTS orders (
@@ -22,10 +20,11 @@ db.run(`
     description TEXT
   )
 `);
+
 const orderService = {
   getOrder: (call, callback) => {
     const { order_id } = call.request;
-    
+
     db.get('SELECT * FROM orders WHERE id = ?', [order_id], (err, row) => {
       if (err) {
         callback(err);
@@ -41,6 +40,7 @@ const orderService = {
       }
     });
   },
+
   searchOrders: (call, callback) => {
     db.all('SELECT * FROM orders', (err, rows) => {
       if (err) {
@@ -55,7 +55,8 @@ const orderService = {
       }
     });
   },
-  CreateOrder: (call, callback) => {
+
+  createOrder: (call, callback) => {
     const { order_id, title, description } = call.request;
     db.run(
       'INSERT INTO orders (id, title, description) VALUES (?, ?, ?)',
@@ -74,20 +75,51 @@ const orderService = {
       }
     );
   },
+
+  updateOrder: (call, callback) => {
+    const { order_id, title, description } = call.request;
+    db.run(
+      'UPDATE orders SET title = ?, description = ? WHERE id = ?',
+      [title, description, order_id],
+      function (err) {
+        if (err) {
+          callback(err);
+        } else {
+          const order = {
+            id: order_id,
+            title,
+            description,
+          };
+          callback(null, { order });
+        }
+      }
+    );
+  },
+
+  deleteOrder: (call, callback) => {
+    const { order_id } = call.request;
+    db.run('DELETE FROM orders WHERE id = ?', [order_id], function (err) {
+      if (err) {
+        callback(err);
+      } else if (this.changes === 0) {
+        callback(new Error('Order not found'));
+      } else {
+        callback(null, { success: true });
+      }
+    });
+  },
 };
-
-
 
 const server = new grpc.Server();
 server.addService(orderProto.OrderService.service, orderService);
 const port = 50052;
 server.bindAsync(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure(), (err, port) => {
-    if (err) {
-      console.error('Failed to bind server:', err);
-      return;
-    }
-  
-    console.log(`Server is running on port ${port}`);
-    server.start();
-  });
+  if (err) {
+    console.error('Failed to bind server:', err);
+    return;
+  }
+
+  console.log(`Server is running on port ${port}`);
+  server.start();
+});
 console.log(`Order microservice running on port ${port}`);

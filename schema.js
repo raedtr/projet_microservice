@@ -22,6 +22,10 @@ const typeDefs = `#graphql
   type Mutation {
     addProduct(id: String!, title: String!, description:String!): Product
     addOrder(id: String!, title: String!, description:String!): Order
+    deleteProduct(id: String!): Boolean
+    updateProduct(id: String!, title: String!, description: String!): Product
+    updateOrder(id: String!, title: String!, description: String!): Order
+    deleteOrder(id: String!): Boolean
   }
 `;
 
